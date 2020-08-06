@@ -90,7 +90,7 @@ compiler in a well defined way so that it can automatically be found.
 Due to the complex interaction with LLVM/MLIR builds, to pass flags to the
 verona build require using the `VERONA_EXTRA_CMAKE_ARGS`, e.g.
 ```
-cmake .. -G Ninja -DVERONA_EXTRA_CMAKE_ARGS="-DCMAKE_CXX_COMPILER=clang-cl;-DCMAKE_C_COMPILER=clang-cl"
+cmake .. -G Ninja -DVERONA_EXTRA_CMAKE_ARGS="-DCMAKE_CXX_FLAGS=-O3;-DCMAKE_C_FLAGS=-O3"
 ```
 This example specifies to build Verona with `clang-cl`. Note: the options must be
 separated by `;`.
