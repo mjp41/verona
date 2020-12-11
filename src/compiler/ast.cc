@@ -137,4 +137,50 @@ namespace verona::compiler
         EXHAUSTIVE_SWITCH
     }
   }
+
+  bool is_a_class(const Entity* e)
+  {
+    return e->kind->value() == Entity::Class;
+  }
+
+  const std::string long_name(const Method& m)
+  {
+    return m.path();
+  }
+
+  const TypeSignature& type_signature(const Method& method)
+  {
+    return method.signature->types;
+  }
+
+  /**
+   * Returns a suitably specialised version of the containing class.
+   */
+  TypePtr containing_type(Context& context, const Method& method)
+  {
+    auto entity = method.parent;
+
+    TypeList arguments;
+    for (const auto& param : entity->generics->types)
+    {
+      arguments.push_back(
+        context.mk_type_parameter(param.get(), TypeParameter::Expanded::No));
+    }
+    return context.mk_entity_type(entity, arguments);
+  }
+
+  const Entity* find_entity(const Program& program, const std::string& name)
+  {
+    return program.find_entity(name);
+  }
+
+  const std::list<std::unique_ptr<TypeParameterDef>>& generics_for_entity(const Entity& entity)
+  {
+    return entity.generics->types;
+  }
+
+  TypePtr get_bound(const TypeParameterDef& type_parameter)
+  {
+    type_parameter.bound;
+  }
 }

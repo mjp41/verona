@@ -64,7 +64,7 @@ namespace verona::compiler
       return std::nullopt;
     }
 
-    const Method* main_method = lookup_member<Method>(main_class, "main");
+    const Method* main_method = lookup_method(main_class, "main");
     if (!main_method)
     {
       context.print_diagnostic(

@@ -4,6 +4,7 @@
 
 #include "compiler/format.h"
 #include "compiler/zip.h"
+#include "compiler/ast.h"
 
 #include <fmt/ostream.h>
 

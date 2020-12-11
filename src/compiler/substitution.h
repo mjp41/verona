@@ -5,6 +5,7 @@
 #include "compiler/freevars.h"
 #include "compiler/mapper.h"
 #include "compiler/printing.h"
+#include "compiler/context.h"
 
 #include <map>
 

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT
 #include "compiler/intern.h"
 
+#include "compiler/ast_forward.h"
 #include "compiler/format.h"
 #include "compiler/ir/print.h"
 #include "compiler/printing.h"
@@ -156,7 +157,7 @@ namespace verona::compiler
       for (const auto& elem : elements)
       {
         if (auto entity = elem->dyncast<EntityType>();
-            entity && entity->definition->kind->value() == Entity::Class)
+            entity && is_a_class(entity->definition))
         {
           if (
             class_definition != nullptr &&

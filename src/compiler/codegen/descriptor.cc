@@ -3,6 +3,7 @@
 #include "compiler/codegen/descriptor.h"
 
 #include "ds/helpers.h"
+#include "compiler/ast.h"
 
 namespace verona::compiler
 {

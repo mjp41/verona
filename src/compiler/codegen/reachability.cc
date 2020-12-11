@@ -216,7 +216,7 @@ namespace verona::compiler
       const CodegenItem<Entity>& sub, const CodegenItem<Method>& super_method)
     {
       const std::string& name = super_method.definition->name;
-      const Method* sub_method = lookup_member<Method>(sub.definition, name);
+      const Method* sub_method = lookup_method(sub.definition, name);
 
       if (sub_method == nullptr)
         throw std::logic_error("Method missing in subtype.");
@@ -364,7 +364,7 @@ namespace verona::compiler
 
       void visit_entity(const Entity* entity, const TypeList& entity_arguments)
       {
-        if (const Method* method = lookup_member<Method>(entity, method_name))
+        if (const Method* method = lookup_method(entity, method_name))
         {
           // We need to build an instantiation that combines the type
           // arguments applied to the entity with the type arguments applied

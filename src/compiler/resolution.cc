@@ -614,7 +614,7 @@ namespace verona::compiler
   {
     if (auto entity = ty->dyncast<EntityType>())
     {
-      if (const Field* field = lookup_member<Field>(entity->definition, name))
+      if (const Field* field = lookup_field(entity->definition, name))
         return Instantiation(entity->arguments).apply(context, field->type);
     }
 
@@ -640,14 +640,14 @@ namespace verona::compiler
   {
     if (auto entity = ty->dyncast<EntityType>())
     {
-      if (const auto* method = lookup_member<Method>(entity->definition, name))
+      if (const auto* method = lookup_method(entity->definition, name))
       {
         return std::make_pair(entity->arguments, method->signature.get());
       }
     }
     else if (auto static_ = ty->dyncast<StaticType>())
     {
-      if (const auto* method = lookup_member<Method>(static_->definition, name))
+      if (const auto* method = lookup_method(static_->definition, name))
       {
         // We cannot lookup non-static methods on static types
         if (method->signature->receiver != nullptr)
@@ -659,4 +659,29 @@ namespace verona::compiler
 
     return std::nullopt;
   }
+
+  const Method* lookup_method(const Entity* definition, const std::string& name)
+  {
+    auto it = definition->members_table.find(name);
+    if (it != definition->members_table.end())
+    {
+      // This can fail and produce nullptr.
+      return dynamic_cast<const Method*>(it->second);
+    }
+
+    return nullptr;
+  }
+
+  const Field* lookup_field(const Entity* definition, const std::string& name)
+  {
+    auto it = definition->members_table.find(name);
+    if (it != definition->members_table.end())
+    {
+      // This can fail and produce nullptr.
+      return dynamic_cast<const Field*>(it->second);
+    }
+
+    return nullptr;
+  }
+
 }

@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: MIT
 #pragma once
 
-#include "compiler/ast.h"
+#include "compiler/ast_forward.h"
+#include "compiler/type.h"
 #include "compiler/context.h"
 
 #include <memory>
@@ -11,20 +12,12 @@
 
 namespace verona::compiler
 {
+
   bool name_resolution(Context& context, Program* p);
 
-  template<typename T>
-  const T* lookup_member(const Entity* definition, const std::string& name)
-  {
-    auto it = definition->members_table.find(name);
-    if (it != definition->members_table.end())
-    {
-      // This can fail and produce nullptr.
-      return dynamic_cast<const T*>(it->second);
-    }
+  const Method* lookup_method(const Entity* definition, const std::string& name);
 
-    return nullptr;
-  }
+  const Field* lookup_field(const Entity* definition, const std::string& name);
 
   TypePtr lookup_field_type(
     Context& context, const TypePtr& ty, const std::string& name);

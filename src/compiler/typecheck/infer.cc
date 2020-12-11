@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 #include "compiler/typecheck/infer.h"
 
-#include "compiler/ast.h"
+#include "compiler/ast_forward.h"
 #include "compiler/format.h"
 #include "compiler/instantiation.h"
 #include "compiler/printing.h"
@@ -69,10 +69,10 @@ namespace verona::compiler
 
       RewriteRegions rewrite_regions(context_, ir);
 
-      const TypeSignature& signature = method_.signature->types;
+      const TypeSignature& signature = type_signature(method_);
       if (ir.receiver)
       {
-        TypePtr self = self_type(method_.parent);
+        TypePtr self = containing_type(context_, method_);
         TypePtr receiver_type =
           context_.mk_intersection(self, signature.receiver);
 
@@ -88,17 +88,6 @@ namespace verona::compiler
     }
 
   private:
-    TypePtr self_type(const Entity* entity)
-    {
-      TypeList arguments;
-      for (const auto& param : entity->generics->types)
-      {
-        arguments.push_back(
-          context_.mk_type_parameter(param.get(), TypeParameter::Expanded::No));
-      }
-      return context_.mk_entity_type(entity, arguments);
-    }
-
     /**
      * Replace Receiver and Parameter regions that appear in the signature to
      * Variable regions, based on what SSA variable the receiver and parameters
@@ -544,7 +533,7 @@ namespace verona::compiler
       if (!closure_)
         add_constraint(
           get_type(assignment, term.input),
-          method_.signature->types.return_type,
+          type_signature(method_).return_type,
           "return_term");
       else
         add_constraint(
@@ -624,10 +613,10 @@ namespace verona::compiler
      */
     TypeList fresh_entity_type_arguments(const Entity* entity)
     {
-      const Generics& generics = *entity->generics;
+      auto& params = generics_for_entity(*entity);
 
       TypeList types;
-      for (const auto& param : generics.types)
+      for (const auto& param : params)
       {
         TypePtr ty = fresh_type_var();
         types.push_back(ty);
@@ -638,9 +627,9 @@ namespace verona::compiler
       // We need to substitute the type arguments in the bounds themselves
       // (using the Instantiation) in order to support F-bounded polymorphism.
       Instantiation instantiation(types);
-      for (const auto& [param, ty] : safe_zip(generics.types, types))
+      for (const auto& [param, ty] : safe_zip(params, types))
       {
-        add_constraint(ty, instantiation.apply(context_, param->bound), "args");
+        add_constraint(ty, instantiation.apply(context_, get_bound(*param)), "args");
       }
 
       return types;
@@ -654,7 +643,7 @@ namespace verona::compiler
      */
     TypePtr get_entity(const std::string& name, TypeList args = TypeList())
     {
-      const Entity* entity = program_.find_entity(name);
+      const Entity* entity = find_entity(program_, name);
       if (!entity)
       {
         abort();
@@ -697,7 +686,7 @@ namespace verona::compiler
 
   void InferResults::dump(Context& context, const Method& method)
   {
-    std::string path = method.path();
+    std::string path = long_name(method);
 
     fmt::print(
       *context.dump(path, "constraints"),
@@ -718,7 +707,7 @@ namespace verona::compiler
     using format::lines;
     using format::sorted;
 
-    std::string path = method.path();
+    std::string path = long_name(method);
     auto output = context.dump(path, name);
 
     fmt::print(*output, "{} for {}:\n", title, path);

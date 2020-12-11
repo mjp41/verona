@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 #pragma once
 
-#include "compiler/ast.h"
+#include "compiler/ast_forward.h"
 #include "compiler/codegen/generator.h"
 #include "compiler/codegen/selector.h"
 #include "compiler/instantiation.h"

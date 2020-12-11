@@ -33,20 +33,14 @@ namespace verona::compiler
 
   struct FunctionABI
   {
-    explicit FunctionABI(const FnSignature& sig)
-    : arguments(1 + sig.parameters.size()), returns(1)
-    {}
+    explicit FunctionABI(const FnSignature& sig);
 
-    explicit FunctionABI(const CallStmt& stmt)
-    : arguments(1 + stmt.arguments.size()), returns(1)
-    {}
+    explicit FunctionABI(const CallStmt& stmt);
 
     // Adds one to arguments for unused receiver
     // TODO-Better-Static-codegen
     // No output for now TODO-PROMISE
-    explicit FunctionABI(const WhenStmt& stmt)
-    : arguments(stmt.cowns.size() + stmt.captures.size() + 1), returns(1)
-    {}
+    explicit FunctionABI(const WhenStmt& stmt);
 
     /**
      * Number of arguments this function has.

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT
 #include "compiler/codegen/function.h"
 
+#include "compiler/ast.h"
 #include "compiler/codegen/builtins.h"
 #include "compiler/codegen/ir.h"
 #include "compiler/printing.h"
@@ -38,6 +39,21 @@ namespace verona::compiler
   {
     return truncate<uint8_t>(next_register_ + children_call_space_);
   }
+
+  FunctionABI::FunctionABI(const FnSignature& sig)
+  : arguments(1 + sig.parameters.size()), returns(1)
+  {}
+
+  FunctionABI::FunctionABI(const CallStmt& stmt)
+  : arguments(1 + stmt.arguments.size()), returns(1)
+  {}
+
+    // Adds one to arguments for unused receiver
+    // TODO-Better-Static-codegen
+    // No output for now TODO-PROMISE
+  FunctionABI::FunctionABI(const WhenStmt& stmt)
+  : arguments(stmt.cowns.size() + stmt.captures.size() + 1), returns(1)
+  {}
 
   FunctionGenerator::FunctionGenerator(
     Context& context, Generator& gen, FunctionABI abi)
