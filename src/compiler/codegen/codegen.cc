@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 #include "compiler/codegen/codegen.h"
 
-#include "compiler/ast.h"
+#include "compiler/ast_forward.h"
 #include "compiler/codegen/builtins.h"
 #include "compiler/codegen/descriptor.h"
 #include "compiler/codegen/function.h"
@@ -18,13 +18,6 @@ namespace verona::compiler
   using bytecode::Opcode;
   using bytecode::SelectorIdx;
 
-  bool is_valid_main_signature(Context& context, const FnSignature& signature)
-  {
-    return signature.generics->types.empty() && signature.receiver == nullptr &&
-      signature.types.arguments.empty() &&
-      signature.types.return_type == context.mk_unit();
-  }
-
   /**
    * Search for the program entrypoint and check it has the right signature.
    *
@@ -34,7 +27,7 @@ namespace verona::compiler
   std::optional<std::pair<CodegenItem<Entity>, CodegenItem<Method>>>
   find_entry(Context& context, const Program& program)
   {
-    const Entity* main_class = program.find_entity("Main");
+    const Entity* main_class = find_entity(program, "Main");
     if (!main_class)
     {
       context.print_global_diagnostic(
@@ -42,25 +35,25 @@ namespace verona::compiler
       return std::nullopt;
     }
 
-    if (main_class->kind->value() != Entity::Class)
+    if (!is_a_class(main_class))
     {
       context.print_diagnostic(
         std::cerr,
-        main_class->name.source_range.first,
+        entity_name_source_range(*main_class).first,
         DiagnosticKind::Error,
         Diagnostic::MainNotAClass);
-      context.print_line_diagnostic(std::cerr, main_class->name.source_range);
+      context.print_line_diagnostic(std::cerr, entity_name_source_range(*main_class));
       return std::nullopt;
     }
 
-    if (!main_class->generics->types.empty())
+    if (!generics_for_entity(*main_class).empty())
     {
       context.print_diagnostic(
         std::cerr,
-        main_class->name.source_range.first,
+        entity_name_source_range(*main_class).first,
         DiagnosticKind::Error,
         Diagnostic::MainClassIsGeneric);
-      context.print_line_diagnostic(std::cerr, main_class->name.source_range);
+      context.print_line_diagnostic(std::cerr, entity_name_source_range(*main_class));
       return std::nullopt;
     }
 
@@ -69,21 +62,21 @@ namespace verona::compiler
     {
       context.print_diagnostic(
         std::cerr,
-        main_class->name.source_range.first,
+        entity_name_source_range(*main_class).first,
         DiagnosticKind::Error,
         Diagnostic::NoMainMethod);
-      context.print_line_diagnostic(std::cerr, main_class->name.source_range);
+      context.print_line_diagnostic(std::cerr, entity_name_source_range(*main_class));
       return std::nullopt;
     }
 
-    if (!is_valid_main_signature(context, *main_method->signature))
+    if (!is_valid_main_method(context, *main_method))
     {
       context.print_diagnostic(
         std::cerr,
-        main_method->name.source_range.first,
+        entity_name_source_range(*main_class).first,
         DiagnosticKind::Error,
         Diagnostic::InvalidMainSignature);
-      context.print_line_diagnostic(std::cerr, main_method->name.source_range);
+      context.print_line_diagnostic(std::cerr, entity_name_source_range(*main_class));
       return std::nullopt;
     }
 

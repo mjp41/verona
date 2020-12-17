@@ -181,6 +181,18 @@ namespace verona::compiler
 
   TypePtr get_bound(const TypeParameterDef& type_parameter)
   {
-    type_parameter.bound;
+    return type_parameter.bound;
+  }
+
+  const SourceManager::SourceRange& entity_name_source_range(const Entity& e)
+  {
+    return e.name.source_range;
+  }
+
+  bool is_valid_main_method(Context& context, const Method& main)
+  {
+    return main.signature->generics->types.empty() && main.signature->receiver == nullptr &&
+      main.signature->types.arguments.empty() &&
+      main.signature->types.return_type == context.mk_unit();
   }
 }

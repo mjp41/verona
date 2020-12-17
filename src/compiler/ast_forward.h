@@ -1,6 +1,7 @@
 #include <string>
 #include <memory>
 #include <list>
+#include "compiler/source_manager.h"
 
 namespace verona::compiler
 {
@@ -43,6 +44,12 @@ namespace verona::compiler
   struct Type;
   typedef std::shared_ptr<const Type> TypePtr;
 
+/**
+ * The following methods are accessors for bits of the AST that the rest of the
+ * pipeline depends upon.
+ *
+ * TODO: Design this better and abstract.
+ */
   bool is_a_class(const Entity*);
   const std::string long_name(const Method&);
   const TypeSignature& type_signature(const Method&);
@@ -51,6 +58,7 @@ namespace verona::compiler
   // TODO insane return type.
   const std::list<std::unique_ptr<TypeParameterDef>>& generics_for_entity(const Entity&);
   TypePtr get_bound(const TypeParameterDef&);
-
+  const SourceManager::SourceRange& entity_name_source_range(const Entity& e);
+  bool is_valid_main_method(Context& context, const Method& main);
 }
 
