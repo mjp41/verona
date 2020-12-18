@@ -62,11 +62,13 @@ namespace verona::compiler
  *
  * TODO: Design this better and abstract.
  */
+  const std::string name(const Entity&);
   bool is_a_class(const Entity*);
   EntityKind get_entity_kind(const Entity&);
   const Entity* find_entity(const Program& program, const std::string& name);
 
   const std::string name(const Method&);
+  const Entity* parent(const Method&);
   const std::string long_name(const Method&);
   const TypeSignature& type_signature(const Method&);
   TypePtr containing_type(Context& context, const Method&);

@@ -172,6 +172,11 @@ namespace verona::compiler
     return program.find_entity(name);
   }
 
+  const Entity* parent(const Method& method)
+  {
+    return method.parent;
+  }
+
   const std::list<std::unique_ptr<TypeParameterDef>>& generics_for_entity(const Entity& entity)
   {
     return entity.generics->types;
@@ -226,6 +231,11 @@ namespace verona::compiler
   }
 
   const std::string name(const Method& m)
+  {
+    return m.name;
+  }
+
+  const std::string name(const Entity& m)
   {
     return m.name;
   }

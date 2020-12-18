@@ -13,11 +13,11 @@ namespace verona::compiler
   void BuiltinGenerator::generate(
     Context& context, Generator& gen, const CodegenItem<Method>& method)
   {
-    FunctionABI abi(type_signature(*method.definition));
+    const Method& m = *method.definition;
+    FunctionABI abi(type_signature(m));
     BuiltinGenerator v(context, gen, abi);
     v.generate_header(method.instantiated_name());
-    v.generate_builtin(
-      method.definition->parent->name, method.definition->name);
+    v.generate_builtin(name(*parent(m)), name(m));
     v.finish();
   }
 
