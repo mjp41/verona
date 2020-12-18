@@ -5,6 +5,7 @@
 
 #include <array>
 #include <climits>
+#include <optional>
 #include <fmt/color.h>
 #include <fmt/core.h>
 #include <fmt/ostream.h>
