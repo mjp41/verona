@@ -13,7 +13,7 @@ namespace verona::compiler
   void BuiltinGenerator::generate(
     Context& context, Generator& gen, const CodegenItem<Method>& method)
   {
-    FunctionABI abi(*method.definition->signature);
+    FunctionABI abi(type_signature(*method.definition));
     BuiltinGenerator v(context, gen, abi);
     v.generate_header(method.instantiated_path());
     v.generate_builtin(

@@ -33,7 +33,7 @@ namespace verona::compiler
 
   struct FunctionABI
   {
-    explicit FunctionABI(const FnSignature& sig);
+    explicit FunctionABI(const TypeSignature& sig);
 
     explicit FunctionABI(const CallStmt& stmt);
 

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 #pragma once
 
-#include "compiler/ast.h"
+#include "compiler/ast_forward.h"
 
 namespace verona::compiler
 {

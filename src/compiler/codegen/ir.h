@@ -587,7 +587,7 @@ namespace verona::compiler
     const LivenessAnalysis& liveness_;
     const std::vector<Label>& closure_labels_;
 
-    FunctionABI abi_ = FunctionABI(*method_.definition->signature);
+    FunctionABI abi_ = FunctionABI(type_signature(*method_.definition));
 
     std::map<Variable, Register> variables_;
     std::unordered_map<const BasicBlock*, Label> basic_block_labels_;

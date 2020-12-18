@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 #include "compiler/codegen/function.h"
 
-#include "compiler/ast.h"
+#include "compiler/ast_forward.h"
 #include "compiler/codegen/builtins.h"
 #include "compiler/codegen/ir.h"
 #include "compiler/printing.h"
@@ -40,8 +40,8 @@ namespace verona::compiler
     return truncate<uint8_t>(next_register_ + children_call_space_);
   }
 
-  FunctionABI::FunctionABI(const FnSignature& sig)
-  : arguments(1 + sig.parameters.size()), returns(1)
+  FunctionABI::FunctionABI(const TypeSignature& sig)
+  : arguments(1 + sig.arguments.size()), returns(1)
   {}
 
   FunctionABI::FunctionABI(const CallStmt& stmt)
@@ -122,7 +122,7 @@ namespace verona::compiler
     const CodegenItem<Method>& method,
     const FnAnalysis& analysis)
   {
-    FunctionABI abi(*method.definition->signature);
+    FunctionABI abi(type_signature(*method.definition));
 
     std::vector<Label> closure_labels;
     MethodIR& mir = *analysis.ir;

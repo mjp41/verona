@@ -1,7 +1,7 @@
 // Copyright Microsoft and Project Verona Contributors.
 // SPDX-License-Identifier: MIT
 #include "compiler/typecheck/assertion.h"
-
+#include "compiler/ast.h"
 #include "compiler/context.h"
 #include "compiler/typecheck/solver.h"
 
