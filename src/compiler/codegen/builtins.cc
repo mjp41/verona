@@ -15,7 +15,7 @@ namespace verona::compiler
   {
     FunctionABI abi(type_signature(*method.definition));
     BuiltinGenerator v(context, gen, abi);
-    v.generate_header(method.instantiated_path());
+    v.generate_header(method.instantiated_name());
     v.generate_builtin(
       method.definition->parent->name, method.definition->name);
     v.finish();

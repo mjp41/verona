@@ -3,7 +3,7 @@
 #include "compiler/codegen/descriptor.h"
 
 #include "ds/helpers.h"
-#include "compiler/ast.h"
+#include "compiler/ast_forward.h"
 
 namespace verona::compiler
 {
@@ -39,14 +39,14 @@ namespace verona::compiler
     void emit_descriptor(
       const CodegenItem<Entity>& entity, const EntityReachability& info)
     {
-      switch (entity.definition->kind->value())
+      switch (get_entity_kind(*entity.definition))
       {
-        case Entity::Class:
-        case Entity::Primitive:
+        case EntityKind::Class:
+        case EntityKind::Primitive:
           emit_class_primitive_descriptor(entity, info);
           break;
 
-        case Entity::Interface:
+        case EntityKind::Interface:
           emit_interface_descriptor(entity, info);
           break;
 
@@ -61,7 +61,7 @@ namespace verona::compiler
       Generator::Relocatable rel_field_slots = gen.create_relocatable();
       Generator::Relocatable rel_field_count = gen.create_relocatable();
 
-      gen.str(entity.instantiated_path());
+      gen.str(entity.instantiated_name());
       gen.u32(rel_method_slots);
       gen.u32(truncate<uint32_t>(info.methods.size()));
       gen.u32(rel_field_slots);
@@ -86,7 +86,7 @@ namespace verona::compiler
     void emit_interface_descriptor(
       const CodegenItem<Entity>& entity, const EntityReachability& info)
     {
-      gen.str(entity.instantiated_path());
+      gen.str(entity.instantiated_name());
       gen.u32(0); // method_slots
       gen.u32(0); // method_count
       gen.u32(0); // field_slots
@@ -105,16 +105,15 @@ namespace verona::compiler
       uint32_t field_slots = 0;
       uint32_t field_count = 0;
 
-      for (const auto& member : entity.definition->members)
-      {
-        if (const Field* fld = member->get_as<Field>())
-        {
-          SelectorIdx index = selectors.get(Selector::field(fld->name));
-          gen.selector(index);
-          field_slots = std::max((uint32_t)(index + 1), field_slots);
-          field_count++;
-        }
-      }
+      for_each_field(*entity.definition,
+        [this, &field_slots, &field_count](const Field& fld)
+          {
+            SelectorIdx index = selectors.get(Selector::field(name(fld)));
+            gen.selector(index);
+            field_slots = std::max((uint32_t)(index + 1), field_slots);
+            field_count++;
+          }
+      );
 
       return {field_slots, field_count};
     }
@@ -130,13 +129,13 @@ namespace verona::compiler
       for (const auto& [method, info] : info.methods)
       {
         TypeList arguments;
-        for (const auto& param : method.definition->signature->generics->types)
+        for (const auto& param : generics_for_method(*method.definition))
         {
-          arguments.push_back(method.instantiation.types().at(param->index));
+          arguments.push_back(method.instantiation.types().at(get_index(*param)));
         }
 
         Selector selector =
-          Selector::method(method.definition->name, arguments);
+          Selector::method(name(*method.definition), arguments);
         SelectorIdx index = selectors.get(selector);
         gen.selector(index);
         gen.u32(info.label.value());
@@ -158,7 +157,7 @@ namespace verona::compiler
     void emit_optional_special_descriptor(const std::string& name)
     {
       const EntityReachability* entity_info = nullptr;
-      if (const Entity* entity = program.find_entity(name))
+      if (const Entity* entity = find_entity(program, name))
       {
         CodegenItem item(entity, Instantiation::empty());
         entity_info = reachability.try_find_entity(item);

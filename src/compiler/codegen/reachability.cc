@@ -9,6 +9,7 @@
 #include "compiler/resolution.h"
 #include "compiler/typecheck/solver.h"
 #include "compiler/typecheck/typecheck.h"
+#include "compiler/ast_forward.h"
 
 #include <fmt/ostream.h>
 #include <map>
@@ -678,12 +679,12 @@ namespace verona::compiler
 
   std::ostream& operator<<(std::ostream& s, const CodegenItem<Method>& item)
   {
-    return s << item.definition->instantiated_path(item.instantiation);
+    return s << instantiated_path(*item.definition, item.instantiation);
   }
 
   std::ostream& operator<<(std::ostream& s, const CodegenItem<Entity>& item)
   {
-    return s << item.definition->instantiated_path(item.instantiation);
+    return s << instantiated_path(*item.definition, item.instantiation);
   }
 
   std::ostream& operator<<(std::ostream& s, const Selector& selector)

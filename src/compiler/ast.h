@@ -2,14 +2,19 @@
 // SPDX-License-Identifier: MIT
 #pragma once
 
+#include "compiler/ast_forward.h"
 #include "compiler/context.h"
-#include "compiler/instantiation.h"
 #include "compiler/local_id.h"
 #include "compiler/pegmatite-extra.h"
+#include "compiler/source_manager.h"
 #include "compiler/type.h"
+#include "pegmatite.hh"
 
+#include <algorithm>
 #include <map>
 #include <optional>
+#include <pegmatite.hh>
+#include <set>
 #include <variant>
 
 using pegmatite::ASTChild;
@@ -23,6 +28,7 @@ namespace verona::compiler
   struct Expression;
   struct Type;
   struct Name;
+  struct Instantiation;
 
   struct TypeExpression;
   struct StaticAssertion;
@@ -272,23 +278,17 @@ namespace verona::compiler
 
     virtual const Name& get_name() const = 0;
     std::string path() const;
-    virtual std::string
-    instantiated_path(const Instantiation& instantiation) const = 0;
   };
 
   struct Entity : public ASTContainer
   {
-    enum class Kind
-    {
-      Class,
-      Interface,
-      Primitive,
-    };
-    static constexpr Kind Class = Kind::Class;
-    static constexpr Kind Interface = Kind::Interface;
-    static constexpr Kind Primitive = Kind::Primitive;
+    using Kind = EntityKind;
 
-    ASTPtr<ASTConstant<Kind>> kind;
+    static constexpr EntityKind Class = EntityKind::Class;
+    static constexpr EntityKind Interface = EntityKind::Interface;
+    static constexpr EntityKind Primitive = EntityKind::Primitive;
+
+    ASTPtr<ASTConstant<EntityKind>> kind;
     ASTChild<Name> name;
     ASTPtr<Generics> generics;
     ASTList<Member> members;
@@ -297,7 +297,6 @@ namespace verona::compiler
     std::unordered_map<std::string, Member*> members_table;
 
     std::string path() const;
-    std::string instantiated_path(const Instantiation& instantiation) const;
   };
 
   struct Method : public Member
@@ -316,9 +315,6 @@ namespace verona::compiler
 
     // Body is required in classes. This is enforced during resolution.
     ASTPtr<FnBody, /* optional */ true> body;
-
-    std::string
-    instantiated_path(const Instantiation& instantiation) const final;
 
     const Name& get_name() const final
     {
@@ -351,8 +347,6 @@ namespace verona::compiler
     {
       return name;
     }
-    std::string
-    instantiated_path(const Instantiation& instantiation) const final;
   };
 
   struct File : public ASTContainer
@@ -581,6 +575,9 @@ namespace verona::compiler
    * types, not on type expressions.
    */
   struct TypeExpression : public SourceLocatableMixin<ASTContainer>
+  {};
+
+  struct StringTypeExpr final : public TypeExpression
   {};
 
   struct SymbolTypeExpr final : public TypeExpression

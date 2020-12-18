@@ -33,9 +33,9 @@ namespace verona::compiler
     : definition(definition), instantiation(instantiation)
     {}
 
-    std::string instantiated_path() const
+    std::string instantiated_name() const
     {
-      return definition->instantiated_path(instantiation);
+      return instantiated_path(*definition, instantiation);
     }
 
     bool operator<(const CodegenItem<T>& other) const

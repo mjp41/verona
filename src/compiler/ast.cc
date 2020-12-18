@@ -56,10 +56,10 @@ namespace verona::compiler
   }
 
   std::string
-  Entity::instantiated_path(const Instantiation& instantiation) const
+  instantiated_path(const Entity& entity, const Instantiation& instantiation)
   {
     return fmt::format(
-      "{}{}", name, instantiated_generics(*generics, instantiation));
+      "{}{}", entity.name, instantiated_generics(*entity.generics, instantiation));
   }
 
   std::string Member::path() const
@@ -69,29 +69,27 @@ namespace verona::compiler
 
     return parent->path() + "." + get_name();
   }
-
-  std::string
-  Method::instantiated_path(const Instantiation& instantiation) const
+  std::string instantiated_path(const Method& method, const Instantiation& instantiation)
   {
-    if (parent == nullptr)
+    if (method.parent == nullptr)
       throw std::logic_error("instantiated_path called before resolution");
 
     return fmt::format(
       "{}.{}{}",
-      parent->instantiated_path(instantiation),
-      name,
-      instantiated_generics(*signature->generics, instantiation));
+      instantiated_path(*method.parent, instantiation),
+      method.name,
+      instantiated_generics(*method.signature->generics, instantiation));
   }
-
-  std::string Field::instantiated_path(const Instantiation& instantiation) const
+  
+  std::string instantiated_path(const Field& field, const Instantiation& instantiation)
   {
-    if (parent == nullptr)
+    if (field.parent == nullptr)
       throw std::logic_error("instantiated_path called before resolution");
 
     std::string buf;
-    buf.append(parent->instantiated_path(instantiation));
+    buf.append(instantiated_path(*field.parent, instantiation));
     buf.append(".");
-    buf.append(name);
+    buf.append(field.name);
     return buf;
   }
 
@@ -179,9 +177,19 @@ namespace verona::compiler
     return entity.generics->types;
   }
 
+  const std::list<std::unique_ptr<TypeParameterDef>>& generics_for_method(const Method& method)
+  {
+    return method.signature->generics->types;
+  }
+
   TypePtr get_bound(const TypeParameterDef& type_parameter)
   {
     return type_parameter.bound;
+  }
+
+  size_t get_index(const TypeParameterDef& type_parameter)
+  {
+    return type_parameter.index;
   }
 
   const SourceManager::SourceRange& entity_name_source_range(const Entity& e)
@@ -194,5 +202,31 @@ namespace verona::compiler
     return main.signature->generics->types.empty() && main.signature->receiver == nullptr &&
       main.signature->types.arguments.empty() &&
       main.signature->types.return_type == context.mk_unit();
+  }
+
+  EntityKind get_entity_kind(const Entity& e)
+  {
+    return e.kind->value();
+  }
+
+  void for_each_field(const Entity& entity, std::function<void(const Field&)> f)
+  {
+    for (const auto& member : entity.members)
+    {
+      if (const Field* fld = member->get_as<Field>())
+      {
+        f(*fld);
+      }
+    }
+  }
+
+  const std::string name(const Field& f)
+  {
+    return f.name;
+  }
+
+  const std::string name(const Method& m)
+  {
+    return m.name;
   }
 }

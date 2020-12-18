@@ -146,7 +146,7 @@ namespace verona::compiler
         *analysis.liveness,
         closure_labels);
 
-      std::string name = method.instantiated_path();
+      std::string name = method.instantiated_name();
       if (i != 0)
         name += ".$c." + std::to_string(i);
 
