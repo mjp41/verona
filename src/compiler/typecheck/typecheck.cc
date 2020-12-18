@@ -17,7 +17,7 @@ namespace verona::compiler
     const Method* method,
     const Solver::SolutionSet& solutions)
   {
-    std::string path = method->path();
+    std::string path = long_name(*method);
     auto output = context.dump(path, "substitution");
 
     int i = 0;
@@ -48,7 +48,7 @@ namespace verona::compiler
   Solver::SolutionSet find_solutions(
     Context& context, const Method* method, const InferResults& inference)
   {
-    std::string path = method->path();
+    std::string path = long_name(*method);
     auto output = context.dump(path, "solver");
     *output << "Solver trace for " << path << ":" << std::endl;
 
@@ -104,7 +104,7 @@ namespace verona::compiler
       }
       else
       {
-        std::cerr << "Did not infer type arguments in " << method->name
+        std::cerr << "Did not infer type arguments in " << name(*method)
                   << std::endl;
         abort();
       }

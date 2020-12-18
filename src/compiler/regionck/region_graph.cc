@@ -5,15 +5,15 @@
 #include "compiler/format.h"
 #include "compiler/typecheck/solver.h"
 #include "compiler/typecheck/typecheck.h"
-#include "compiler/visitor.h"
+#include "compiler/ast_forward.h"
 
 namespace verona::compiler
 {
   void dump_region_graphs(
     Context& context, const Method& method, const RegionGraphs& graphs)
   {
-    auto out = context.dump(method.path(), "region-graph");
-    fmt::print(*out, "Region Graphs for {}\n", method.path());
+    auto out = context.dump(long_name(method), "region-graph");
+    fmt::print(*out, "Region Graphs for {}\n", long_name(method));
 
     for (const auto& [bb, graph] : graphs)
     {
@@ -90,7 +90,7 @@ namespace verona::compiler
   std::unique_ptr<RegionGraphs> make_region_graphs(
     Context& context, const Method& method, const TypecheckResults& typecheck)
   {
-    auto output = context.dump(method.path(), "make-region-graph");
+    auto output = context.dump(long_name(method), "make-region-graph");
     Solver solver(context, *output);
 
     std::unique_ptr<RegionGraphs> result = std::make_unique<RegionGraphs>();

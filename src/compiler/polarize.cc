@@ -192,7 +192,7 @@ namespace verona::compiler
       TypePtr expanded = context_.mk_type_parameter(
         ty->definition, TypeParameter::Expanded::Yes);
       return apply(
-        context_.mk_intersection(expanded, ty->definition->bound), polarity);
+        context_.mk_intersection(expanded, get_bound(*ty->definition)), polarity);
     }
     else
     {

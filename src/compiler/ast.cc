@@ -239,4 +239,10 @@ namespace verona::compiler
   {
     return m.name;
   }
+
+  bool is_a_builtin(const Method& m)
+  {
+    return m.kind() == Method::Builtin;
+  }
+
 }

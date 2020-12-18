@@ -7,7 +7,6 @@
 #include "compiler/codegen/ir.h"
 #include "compiler/printing.h"
 #include "compiler/typecheck/typecheck.h"
-#include "compiler/visitor.h"
 #include "compiler/zip.h"
 
 namespace verona::compiler
@@ -173,7 +172,7 @@ namespace verona::compiler
           continue;
 
         gen.define_label(method_info.label.value());
-        if (method.definition->kind() == Method::Builtin)
+        if (is_a_builtin(*method.definition))
         {
           BuiltinGenerator::generate(context, gen, method);
         }

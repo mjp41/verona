@@ -21,9 +21,6 @@ namespace verona::compiler
   struct StaticAssertion;
 
   struct FnSignature;
-  struct FnBody;
-  struct Receiver;
-  struct FnParameter;
   struct Generics;
   struct TypeParameterDef;
 
@@ -31,12 +28,9 @@ namespace verona::compiler
   struct WhereClauseTerm;
 
   struct Type;
-  struct NewParent;
   struct TypeSignature;
 
   struct Expression;
-  struct Argument;
-  struct MatchArm;
   struct Constraint;
 
   struct TypeExpression;
@@ -70,6 +64,7 @@ namespace verona::compiler
   const std::string name(const Method&);
   const Entity* parent(const Method&);
   const std::string long_name(const Method&);
+  bool is_a_builtin(const Method&);
   const TypeSignature& type_signature(const Method&);
   TypePtr containing_type(Context& context, const Method&);
   // TODO insane return type.

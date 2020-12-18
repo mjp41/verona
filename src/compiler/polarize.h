@@ -4,7 +4,6 @@
 
 #include "compiler/context.h"
 #include "compiler/mapper.h"
-#include "compiler/visitor.h"
 
 namespace verona::compiler
 {

@@ -4,7 +4,6 @@
 #include "compiler/ir/ir.h"
 #include "compiler/printing.h"
 #include "compiler/typecheck/typecheck.h"
-#include "compiler/visitor.h"
 #include "compiler/zip.h"
 
 #include <fmt/ostream.h>

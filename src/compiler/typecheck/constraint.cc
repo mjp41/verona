@@ -7,7 +7,6 @@
 #include "compiler/polarize.h"
 #include "compiler/resolution.h"
 #include "compiler/typecheck/structural.h"
-#include "compiler/visitor.h"
 #include "compiler/zip.h"
 
 #include <fmt/ostream.h>
