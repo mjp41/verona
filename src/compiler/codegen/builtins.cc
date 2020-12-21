@@ -3,7 +3,7 @@
 #include "compiler/codegen/builtins.h"
 
 #include "compiler/codegen/generator.h"
-#include "compiler/ast.h"
+#include "compiler/ast_forward.h"
 
 namespace verona::compiler
 {
