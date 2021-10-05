@@ -18,14 +18,26 @@ There are two types of region in Verona, mutable and immutable.  There is a sing
 There can be multiple mutable regions.  There is a single object in a mutable region that is the entry point. There is a single reference to the entry point from outside the region.  There may be multiple references from within the region to any other object, including the entry point.  This can be enforced by:
 ```
   ∀ ref1,ref2.
-    region_of(ref1.dst) = region_of(ref2.dst) ∧  region_of(ref1.dst) ≠ immutable ⇒
+    ref1.src ≠ ref2.src ∧
+    region_of(ref1.dst) = region_of(ref2.dst) ∧
+    region_of(ref1.dst) ≠ immutable
+    ⇒
       region_of(ref1.src) = region_of(ref1.dst) ∨
-      region_of(ref2.src) = region_of(ref1.dst) ∨
-      ref1.src == ref2.src
+      region_of(ref2.src) = region_of(ref1.dst)
 ```
 Here, we use a generic concept of reference, where a reference has a `src` and `dst`.  The `src` of a reference is a storage location, which includes stack locations for variables, fields in objects, and captures in closures.  The `dst` is always an object.This generalisation to references is required to ensure there is only a single entry point from either the stack or the heap.
 
-[TODO: This explanation falls short when we get to `using`. Well, we at least need to carefully consider how `region_of` interacts with variable scopes.  I think we need to extend region_of to sets, and then stack locations are in the set of currently open regions.  Then a bunch of equalities become subsets.]
+[TODO: This explanation falls short when we get to `using`. I think we need to extend `region_of` to sets, and then stack locations are in the set of currently open regions.  Then a bunch of equalities become subsets.
+```
+  ∀ ref1,ref2.
+    ref1.src ≠ ref2.src ∧
+    region_of(ref1.dst) ∩ region_of(ref2.dst) ⊆ { immutable } ⇒
+      region_of(ref1.src) ⊇ region_of(ref1.dst) ∨
+      region_of(ref2.src) ⊇ region_of(ref1.dst)
+```
+The `region_of` a stack var is the set of enclosing `using`, and the `region_of` of any
+object is a singleton set.
+]
 
 The overall topology is a forest of mutable regions, which can all reference the immutable region.
 
