@@ -31,7 +31,7 @@ Here, we use a generic concept of reference, where a reference has a `src` and `
 ```
   ∀ ref1,ref2.
     ref1.src ≠ ref2.src ∧
-    region_of(ref1.dst) ∩ region_of(ref2.dst) ⊆ { immutable } ⇒
+    region_of(ref1.dst) ∩ region_of(ref2.dst) ̸⊆ { immutable } ⇒
       region_of(ref1.src) ⊇ region_of(ref1.dst) ∨
       region_of(ref2.src) ⊇ region_of(ref1.dst)
 ```
