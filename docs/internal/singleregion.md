@@ -17,29 +17,25 @@ There are two types of region in Verona, mutable and immutable.  There is a sing
 ```
 There can be multiple mutable regions.  There is a single object in a mutable region that is the entry point. There is a single reference to the entry point from outside the region.  There may be multiple references from within the region to any other object, including the entry point.
 
-To constrain the region topology in accounting for both stack and heap references, we use a concept of the references in a state, `refs(σ)`, this is the set of `src` and `dst` pairs for each reference, where the `src` is a storage location, and the `dst` is an object identifier.  Storage locations are either a variable on the stack, or an object identifier and field identifier pair.  As storage locations can only reference one object, we know:
+To constrain the region topology in accounting for both stack and heap references, we use a concept of storage locations, which are either a variable on the stack, or an object identifier and field identifier pair.  A state, `σ`, is thus a map from storage locations to object identifiers.  We also have a function `region_of`, which maps both storage locations, and object identifiers to regions.  We can constraint the region topology to be a forest of mutable regions, that is any validly shaped state, σ, satisfies:
 ```
-  ∀ r₁ ∈ refs(σ), r₂ ∈ refs(σ).  r₁.src = r₂.src  ⇒  r₁ = r₂
-```
-We can use the definition `refs` to constraint the region topology to be a forest of mutable regions, that is any validly shaped state, σ, satisfies:
-```
-  ∀ r₁ ∈ refs(σ), r₂ ∈ refs(σ).
-    r₁.src ≠ r₂.src ∧
-    region_of(r₁.dst) = region_of(r₂.dst) ∧
-    region_of(r₁.dst) ≠ immutable
+  ∀ r₁ ∈ dom(σ), r₂ ∈ dom(σ).
+    r₁ ≠ r₂ ∧
+    region_of(σ(r₁)) = region_of(σ(r₂)) ∧
+    region_of(σ(r₁)) ≠ immutable
     ⇒
-      region_of(r₁.src) = region_of(r₁.dst) ∨
-      region_of(r₂.src) = region_of(r₂.dst)
+      region_of(r₁) = region_of(σ(r₁)) ∨
+      region_of(r₂) = region_of(σ(r₂))
 ```
-That is, for any two distinct storage locations, `r₁.src ≠ r₂.src`, which reference the same region, `region_of(r₁.dst) = region_of(r₂.dst)`, and that region is not immutable, `region_of(r₁.dst) ≠ immutable`, then either the first started in the same region, `region_of(r₁.src) = region_of(r₁.dst)`, or the second did, `region_of(r₂.src) = region_of(r₂.dst)`.
+That is, for any two distinct storage locations, `r₁ ≠ r₂`, which reference the same region, `region_of(σ(r₁)) = region_of(σ(r₂))`, and that region is not immutable, `region_of(σ(r₁)) ≠ immutable`, then either the first started in the same region, `region_of(r₁) = region_of(σ(r₁))`, or the second did, `region_of(r₂) = region_of(σ(r₂))`.
 
 [TODO: This explanation falls short when we get to `using`. I think we need to extend `region_of` to sets, and then stack locations are in the set of currently open regions.  Then a bunch of equalities become subsets.
 ```
-  ∀ r₁ ∈ refs(σ), r₂ ∈ refs(σ).
-    r₁.src ≠ r₂.src ∧
-    region_of(r₁.dst) ∩ region_of(r₂.dst) ̸⊆ { immutable } ⇒
-      region_of(r₁.src) ⊇ region_of(r₁.dst) ∨
-      region_of(r₂.src) ⊇ region_of(r₂.dst)
+  ∀ r₁ ∈ dom(σ), r₂ ∈ dom(σ).
+    r₁ ≠ r₂ ∧
+    region_of(σ(r₁)) ∩ region_of(σ(r₂)) ̸⊆ { immutable } ⇒
+      region_of(r₁) ⊇ region_of(σ(r₁)) ∨
+      region_of(r₂) ⊇ region_of(σ(r₂))
 ```
 The `region_of` a stack var is the set of enclosing `using`, and the `region_of` of any
 object is a singleton set.
