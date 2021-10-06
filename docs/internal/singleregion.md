@@ -15,25 +15,31 @@ There are two types of region in Verona, mutable and immutable.  There is a sing
 ```
   ∀ x,f. region_of(x) = immutable ⇒ region_of(x.f) = immutable
 ```
-There can be multiple mutable regions.  There is a single object in a mutable region that is the entry point. There is a single reference to the entry point from outside the region.  There may be multiple references from within the region to any other object, including the entry point.  This can be enforced by:
+There can be multiple mutable regions.  There is a single object in a mutable region that is the entry point. There is a single reference to the entry point from outside the region.  There may be multiple references from within the region to any other object, including the entry point.
+
+To constrain the region topology in accounting for both stack and heap references, we use a concept of the references in a state, `refs(σ)`, this is the set of `src` and `dst` pairs for each reference, where the `src` is a storage location, and the `dst` is an object identifier.  Storage locations are either a variable on the stack, or an object identifier and field identifier pair.  As storage locations can only reference one object, we know:
 ```
-  ∀ ref1,ref2.
-    ref1.src ≠ ref2.src ∧
-    region_of(ref1.dst) = region_of(ref2.dst) ∧
-    region_of(ref1.dst) ≠ immutable
+  ∀ r₁ ∈ refs(σ), r₂ ∈ refs(σ).  r₁.src = r₂.src  ⇒  r₁ = r₂
+```
+We can use the definition `refs` to constraint the region topology to be a forest of mutable regions, that is any validly shaped state, σ, satisfies:
+```
+  ∀ r₁ ∈ refs(σ), r₂ ∈ refs(σ).
+    r₁.src ≠ r₂.src ∧
+    region_of(r₁.dst) = region_of(r₂.dst) ∧
+    region_of(r₁.dst) ≠ immutable
     ⇒
-      region_of(ref1.src) = region_of(ref1.dst) ∨
-      region_of(ref2.src) = region_of(ref1.dst)
+      region_of(r₁.src) = region_of(r₁.dst) ∨
+      region_of(r₂.src) = region_of(r₂.dst)
 ```
-Here, we use a generic concept of reference, where a reference has a `src` and `dst`.  The `src` of a reference is a storage location, which includes stack locations for variables, fields in objects, and captures in closures.  The `dst` is always an object.This generalisation to references is required to ensure there is only a single entry point from either the stack or the heap.
+That is, for any two distinct storage locations, `r₁.src ≠ r₂.src`, which reference the same region, `region_of(r₁.dst) = region_of(r₂.dst)`, and that region is not immutable, `region_of(r₁.dst) ≠ immutable`, then either the first started in the same region, `region_of(r₁.src) = region_of(r₁.dst)`, or the second did, `region_of(r₂.src) = region_of(r₂.dst)`.
 
 [TODO: This explanation falls short when we get to `using`. I think we need to extend `region_of` to sets, and then stack locations are in the set of currently open regions.  Then a bunch of equalities become subsets.
 ```
-  ∀ ref1,ref2.
-    ref1.src ≠ ref2.src ∧
-    region_of(ref1.dst) ∩ region_of(ref2.dst) ̸⊆ { immutable } ⇒
-      region_of(ref1.src) ⊇ region_of(ref1.dst) ∨
-      region_of(ref2.src) ⊇ region_of(ref1.dst)
+  ∀ r₁ ∈ refs(σ), r₂ ∈ refs(σ).
+    r₁.src ≠ r₂.src ∧
+    region_of(r₁.dst) ∩ region_of(r₂.dst) ̸⊆ { immutable } ⇒
+      region_of(r₁.src) ⊇ region_of(r₁.dst) ∨
+      region_of(r₂.src) ⊇ region_of(r₂.dst)
 ```
 The `region_of` a stack var is the set of enclosing `using`, and the `region_of` of any
 object is a singleton set.
@@ -223,6 +229,39 @@ using x.value {
 // x: mut & Entry
 ```
 
+### Store type
+
+[TODO]
+
+### Mutable Variables
+
+`var` 
+
+### Mutable Variables with `using`
+
+Next we consider the combination of mutable local variables with `using`.
+The core issues is updating variables declared outside the current scope
+with values from the current region.
+
+Consider the following example of passing state out of a using:
+```
+var r;
+// dll: iso & Entry
+// new_v: iso & V
+using dll
+{
+  y => 
+  r = y.value = new_v;
+}
+```
+This example enters a region containing a doubly linked list.
+It then updates a sub-region, by storing a new region in, and saves the
+previous value into the context.  This is a perfectly safe thing to do.
+
+
+[TODO: Need locals of type `store[T]` to account for taking passing lvalues.]
+
+
 ### Semantics
 
 [TODO - Overview of semantics]
@@ -236,13 +275,6 @@ storage_location ⇀ value
 
 In what follows, we consider `value` to be `oid`.
 
-[TODO: Nested storage locations?]
-
-### Variables and `store[T]`
-
-[TODO: This doesn't account for mutable local variables so far.]
-[TODO: Need locals of type `store[T]` to account for taking passing lvalues.]
-
 ```
 storage_location ⇀ (value ∪ storage_location)
 ```
@@ -252,6 +284,26 @@ x: store[T] & mut
 ```
 is a reference from the storage location `x` to a storage location containing references satisfying `T`.
 
+
 ## Formal
 
-[TODO: Formal type rules will be part of a subsequent PR.]
+To simplify the presentation of the formal system
+
+
+We define types as
+
+```
+ τ ::= τ1 | τ2
+    |  τ1 & τ2
+    |  { f: τ }
+    |  iso
+    |  mut
+    |  imm
+    |  paused
+    |  Top (undef)
+    |  store[τ]
+    |  current
+    |  outer
+```
+
+[TODO]
