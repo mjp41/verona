@@ -1293,8 +1293,8 @@ namespace verona::rt
           return false;
 
         (void)epoch;
-        //if (apply_backpressure(alloc, epoch, senders, senders_count))
-        //  return false;
+        if (apply_backpressure(alloc, epoch, senders, senders_count))
+          return false;
 
         // Reschedule the other cowns.
         for (size_t s = 0; s < senders_count; s++)
