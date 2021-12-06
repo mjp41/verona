@@ -10,6 +10,7 @@
 #include "multimessage.h"
 #include "priority.h"
 #include "schedulerthread.h"
+#include "threadsync.h"
 
 #include <algorithm>
 
@@ -131,7 +132,7 @@ namespace verona::rt
 
     std::atomic<BPState> bp_state{};
 
-    std::atomic<bool> queue_locked = false;
+    EnqueueLock enqueue_lock;
 
     static Cown* create_token_cown()
     {
@@ -503,43 +504,41 @@ namespace verona::rt
 
 #ifdef ACQUIRE_ALL
       UNUSED(high_priority);
-      // First acquire all the locks
-      // FIXME: Bad implementation for testing purposes
-      for (size_t i=0;i<body->count;i++)
+      // First acquire all the locks if a multimessage
+      if (body->count > 1)
       {
-        auto* next = body->cowns[i];
-        Systematic::cout() << "Will try to acquire lock " << next << Systematic::endl;
-        auto u = false;
-        while(!next->queue_locked.compare_exchange_strong(u, true))
+        for (size_t i = 0; i < body->count; i++)
         {
-          u = false;
+          auto* next = body->cowns[i];
+          Systematic::cout()
+            << "Will try to acquire lock " << next << Systematic::endl;
+          next->enqueue_lock.lock();
           yield();
+          Systematic::cout() << "Acquired lock " << next << Systematic::endl;
         }
-        yield();
-        Systematic::cout() << "Acquired lock " << next << Systematic::endl;
       }
 
       size_t loop_end = body->count;
-      for (size_t i=0;i<loop_end;i++)
+      for (size_t i = 0; i < loop_end; i++)
       {
         auto m = MultiMessage::make_message(alloc, body, epoch);
         auto* next = body->cowns[i];
         Systematic::cout() << "MultiMessage " << m << ": fast requesting "
-                           << next << ", index " << i << " behaviour " << body->behaviour << " loop end " << loop_end 
+                           << next << ", index " << i << " behaviour "
+                           << body->behaviour << " loop end " << loop_end
                            << Systematic::endl;
 
         auto needs_sched = next->try_fast_send(m);
-        // Release all the locks now. Is it too early?
-        assert(next->queue_locked == true);
-        next->queue_locked = false;
+        if (loop_end > 1)
+          next->enqueue_lock.unlock();
 
         if (!needs_sched)
         {
-          Systematic::cout() << "try fast send found busy cown " << body << " loop iteration " << i <<  " cown " << next << Systematic::endl;
+          Systematic::cout()
+            << "try fast send found busy cown " << body << " loop iteration "
+            << i << " cown " << next << Systematic::endl;
           continue;
         }
-
-
 
         Systematic::cout() << "Will schedule cown " << next << Systematic::endl;
         if (i == last)
@@ -547,20 +546,6 @@ namespace verona::rt
           next->schedule();
           return;
         }
-        
-#if 0
-        Systematic::cout() << "Should I schedule? " << body << " loop iteration " << i <<  " cown " << next << Systematic::endl;
-
-        if(body->exec_count_down.fetch_sub(1) == 1)
-        {
-          body->exec_count_down++;
-          Systematic::cout() << "Will schedule? " << body << " loop iteration " << i <<  " cown " << next << Systematic::endl;
-          next->schedule();
-          return;
-        }
-
-        Systematic::cout() << "Will not schedule? " << body << " loop iteration " << i <<  " cown " << next << Systematic::endl;
-#endif
 
         body->exec_count_down.fetch_sub(1);
 
@@ -655,7 +640,9 @@ namespace verona::rt
 #endif
       Systematic::cout() << "Enqueue MultiMessage " << m << Systematic::endl;
       bool needs_scheduling = queue.enqueue(m);
-      Systematic::cout() << "Enqueued MultiMessage " << m << " needs scheduling? " << needs_scheduling << Systematic::endl;
+      Systematic::cout() << "Enqueued MultiMessage " << m
+                         << " needs scheduling? " << needs_scheduling
+                         << Systematic::endl;
       yield();
       if (needs_scheduling)
       {
