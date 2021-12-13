@@ -10,7 +10,6 @@
 #include "multimessage.h"
 #include "priority.h"
 #include "schedulerthread.h"
-#include "threadsync.h"
 
 #include <algorithm>
 
@@ -41,6 +40,31 @@ namespace verona::rt
   }
 
   static Behaviour unmute_behaviour{Behaviour::Descriptor::empty()};
+
+#ifdef ACQUIRE_ALL
+  struct EnqueueLock
+  {
+    std::atomic<bool> locked = false;
+
+    void lock()
+    {
+      auto u = false;
+      while (!locked.compare_exchange_strong(u, true))
+      {
+        u = false;
+        while (locked)
+        {
+          yield();
+        }
+      }
+    }
+
+    void unlock()
+    {
+      locked.store(false, std::memory_order_release);
+    }
+  };
+#endif
 
   /**
    * A cown, or concurrent owner, encapsulates a set of resources that may be
@@ -132,7 +156,9 @@ namespace verona::rt
 
     std::atomic<BPState> bp_state{};
 
+#ifdef ACQUIRE_ALL
     EnqueueLock enqueue_lock;
+#endif
 
     static Cown* create_token_cown()
     {
