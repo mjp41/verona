@@ -34,12 +34,16 @@ void philosopher_main_manual(int phil_id, int hunger)
     m2->lock();
 
     // eat -> busy wait
-    std::chrono::microseconds usec(loop_time);
-    auto start = std::chrono::system_clock::now();
-    auto end = start + usec;
+    int it_count = loop_time / 10;
+    for (int j=0;j<it_count;j++)
+    {
+      std::chrono::microseconds usec(10);
+      auto start = std::chrono::system_clock::now();
+      auto end = start + usec;
 
-    // spin
-    while (std::chrono::system_clock::now() <= end);
+      // spin
+      while (std::chrono::system_clock::now() <= end);
+    }
 
     m1->unlock();
     m2->unlock();
@@ -55,12 +59,16 @@ void philosopher_main(int phil_id, int hunger)
     std::lock_guard<std::mutex> lk2(forks[phil_id], std::adopt_lock);
 
     // eat -> busy wait
-    std::chrono::microseconds usec(loop_time);
-    auto start = std::chrono::system_clock::now();
-    auto end = start + usec;
+    int it_count = loop_time / 10;
+    for (int j=0;j<it_count;j++)
+    {
+      std::chrono::microseconds usec(10);
+      auto start = std::chrono::system_clock::now();
+      auto end = start + usec;
 
-    // spin
-    while (std::chrono::system_clock::now() <= end);
+      // spin
+      while (std::chrono::system_clock::now() <= end);
+    }
   }
 }
 
