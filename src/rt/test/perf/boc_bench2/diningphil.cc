@@ -46,6 +46,32 @@ void philosopher_main_manual(int phil_id, int hunger)
   }
 }
 
+void spin(size_t usec)
+{
+  std::chrono::microseconds us(usec);
+  auto start = std::chrono::system_clock::now();
+  auto end = start + us;
+
+  auto prev = start;
+  // spin
+  while (true)
+  {
+    auto curr = std::chrono::system_clock::now();
+    if (curr - prev > std::chrono::microseconds(20))
+    {
+      // Detected pre-emption
+      std::cout << "Pre-emption detected" << std::endl;
+      end = end + (curr - prev);
+      continue;
+    }
+
+    if (curr >= end)
+      break;
+
+    prev = curr;
+  }
+}
+
 void philosopher_main(int phil_id, int hunger)
 {
   for (int i=0;i<hunger;i++)
