@@ -63,7 +63,7 @@ struct Philosopher
   : left(get_left(index)), right(get_right(index)), hunger(HUNGER)
   {}
 
-  static void eat(std::unique_ptr<Philosopher>&& phil)
+  static void eat(std::unique_ptr<Philosopher> phil)
   {
     if (phil->hunger > 0)
     {
