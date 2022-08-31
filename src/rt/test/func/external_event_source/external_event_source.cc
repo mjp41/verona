@@ -130,6 +130,8 @@ struct ExternalSource
     if (notifications_on.exchange(false))
       p->mark_notify();
 
+    Systematic::yield();
+
     Cown::release(alloc, p);
   }
 
